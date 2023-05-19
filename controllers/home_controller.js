@@ -8,7 +8,8 @@ module.exports.home=async function(req,res)//home is a function which is asynchr
 //we will return a response 
 try{
 //here we have to display the user who has posted so instead of the user id we have to populate the user of each post 
-let posts=await Post.find({})   //all the successful responses will be stored in posts 
+let posts=await Post.find({})//all the successful responses will be stored in posts 
+.sort('-createdAt')   //sorting the posts in the order i which they were created 
 .populate('user')//we are populating the user to all the posts 
 .populate({
     path:'comments',//because there are multiple comments 

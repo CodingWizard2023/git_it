@@ -1,5 +1,12 @@
 const mongoose=require('mongoose');
 
+const multer=require('multer');//requiring multer 
+const path=require('path');//requiring path 
+
+
+
+
+
 const userSchema=new mongoose.Schema({
     email:{
         type:String,

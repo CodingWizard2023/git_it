@@ -1,65 +1,84 @@
-const Post=require('../models/post');
-const Comment=require('../models/comment');
+    const Post=require('../models/post');
+    const Comment=require('../models/comment');
+    const { post } = require('../routes');
 
 
-module.exports.create=async function(req,res)
-{
-    try{
-        let post=await Post.create(//create a post in the database 
+    module.exports.create=async function(req,res)
+    {
+        try{
+            let post=await Post.create(//create a post in the database 
+            {
+                content:req.body.content,
+                user:req.user._id
+            });
+
+
+            if(req.xhr)//we have to check whether the request is AJAX request or not it is called xml http request 
+            {
+                return res.status(200).json({
+                    data:{
+                        post:post
+                    },
+                    message:"Post created "
+                })
+
+            }
+        
+
+            req.flash('success','Post Published !!');
+            return res.redirect('back');
+        }
+        catch(err){
+            req.flash('error',err);
+            return;
+        }
+    };
+
+
+    module.exports.destroy=async function(req,res)
+    {
+
+        try{
+        let post=await Post.findById(req.params.id);
+        //.id means converting the object id into string 
+        if(post.user == req.user.id)
         {
-            content:req.body.content,
-            user:req.user._id
-        });
+            post.remove();
 
-    if(req.xhr)
+            await Comment.deleteMany({post:req.params.id});
+
+
+            if(req.xhr)//if the request is of xml http request then 
+            {
+                return res.status(200).json({//return the status code of 200 which is successful 
+                    data:{
+                        post_id:req.params.id,
+                    },
+                    message:"Post deleted"
+                });
+
+            }
+
+            req.flash('success','Post and associated comments deleted ');
+            return res.redirect('back');
+
+
+
+        }   
+
+
+
+        else{
+            req.flash('error','You cannot delete this post ')
+            return res.redirect('back');
+        }
+
+    }
+    catch(err)
     {
-        return res.status(200).json({//200 is a success message 
-            data:{
-                post:post
-            },
-            message:"Post Created!!"
-        })
-    }
-
-        req.flash('success','Post Published !!')
+        req.flash('error', err);
         return res.redirect('back');
-    }
-    catch(err){
-        req.flash('error',err);
-        return;
-    }
-};
-
-
-module.exports.destroy=async function(req,res)
-{
-
-    try{
-    let post=await Post.findById(req.params.id);
-    //.id means converting the object id into string 
-    if(post.user == req.user.id)
-    {
-        post.remove();
-
-        await Comment.deleteMany({post:req.params.id});
-
-        req.flash('success','Post and associated comments deleted ');
-        return res.redirect('back');
-
-
-
-    }   
-
-    else{
-        req.flash('error','You cannot delete this post ')
-        return res.redirect('back');
+        
     }
 
-}
-catch(err)
-{
-    console.log('Error',err);
-    
-}
-
-}
+    }
